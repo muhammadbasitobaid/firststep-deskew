@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firststep.ai | Image Deskewer</title>
+    <link rel="icon" href="{{ url_for('static', filename='/logo.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/index.css') }}">
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="navbar">
+            <div class="left">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Company Logo">
+            </div>
+            <div class="right">
+                <!-- <a href="#upload-container">Upload</a> -->
+                <div id="server_version">V: {{ version | default('2024.06.08.001', true) }} </div>
+            </div>
+        </div>
+        <div class="hero">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Welcome to Image Deskewer</h1>
+                    <p>Image De-skewer/ Auto-correct distorted images. Fast, accurate, and easy.</p>
+                </div>
+                <div class="svg-container" style="position: relative;">
+                    <div class="page-div">
+
+                        <svg class="lines-svg" viewBox="0 0 320 190">
+                            <g class="tilted-group">
+                                <line x1="80" y1="80" x2="250" y2="80" class="tilted-lines" />
+                                <line x1="80" y1="95" x2="250" y2="95" class="tilted-lines" />
+                                <line x1="80" y1="110" x2="250" y2="110" class="tilted-lines" />
+                                <line x1="80" y1="125" x2="250" y2="125" class="tilted-lines" />
+                                <line x1="80" y1="140" x2="150" y2="140" class="tilted-lines" />
+                                <line x1="180" y1="140" x2="220" y2="140" class="tilted-lines" />
+                                <line x1="80" y1="155" x2="200" y2="155" class="tilted-lines" />
+                            </g>
+                            <g class="box-group">
+                                <circle cx="80" cy="80" class="dot dot-1" />
+                                <circle cx="250" cy="80" class="dot dot-2" />
+                                <circle cx="250" cy="155" class="dot dot-3" />
+                                <circle cx="80" cy="155" class="dot dot-4" />
+                                <line x1="80" y1="80" x2="250" y2="80" class="box-line line-1" />
+                                <line x1="250" y1="80" x2="250" y2="155" class="box-line line-2" />
+                                <line x1="250" y1="155" x2="80" y2="155" class="box-line line-3" />
+                                <line x1="80" y1="155" x2="80" y2="80" class="box-line line-4" />
+                            </g>
+                        </svg>
+
+                        <div class="upload-container">
+                            <h2>Upload an Image</h2>
+                            <form action="/upload" method="post" enctype="multipart/form-data">
+                                <input type="file" id="file-upload" name="file" accept=".jpg, .jpeg, .png" required>
+                                <label for="file-upload" class="custom-upload" id="custom-upload-label">
+                                    <img id="upload-icon"
+                                        src="{{ url_for('static', filename='images/upload_gray.svg') }}" />
+                                    <img id="upload-icon--active"
+                                        src="{{ url_for('static', filename='images/upload_orange.svg') }}"
+                                        style="display: none;" />
+                                    <span id="upload-text">Select any jpg, jpeg, or png</span>
+                                </label>
+                                <span class="file-name" id="file-name"></span>
+                                <input type="submit" value="Upload">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const fileUpload = document.getElementById('file-upload');
+        const customUploadLabel = document.getElementById('custom-upload-label');
+        const uploadText = document.getElementById('upload-text');
+        const fileNameSpan = document.getElementById('file-name');
+        const uploadIcon = document.getElementById('upload-icon');
+        const uploadIconActive = document.getElementById('upload-icon--active');
+
+        fileUpload.addEventListener('change', function () {
+            if (fileUpload.files.length === 1) {
+                customUploadLabel.classList.add('selected');
+                uploadText.textContent = 'File selected';
+                uploadText.classList.add('selected');
+                uploadIcon.style.display = 'none';
+                uploadIconActive.style.display = 'inline-block';
+                const fileName = fileUpload.files[0].name;
+                fileNameSpan.textContent = fileName.length > 15 ? `${fileName.substring(0, 15)}...` : fileName;
+            } else {
+                customUploadLabel.classList.remove('selected');
+                uploadText.classList.remove('selected');
+                uploadText.textContent = 'Select any jpg, jpeg, or png';
+                fileNameSpan.textContent = '';
+                uploadIcon.style.display = 'inline-block';
+                uploadIconActive.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+
+</html>

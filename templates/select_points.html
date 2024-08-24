@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Points</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/index.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='/logo.ico') }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script
+        src="{{ url_for('static', filename='scripts/before-after-image-viewer/dist/beforeafter.jquery-1.0.0.min.js') }}"></script>
+    <script>
+        var points = [];
+        var canvas, ctx, img;
+
+        window.onload = function () {
+            canvas = document.getElementById("image-canvas");
+            ctx = canvas.getContext("2d");
+            img = new Image();
+            img.src = "{{ url_for('uploaded_file', filename=img_path.split('/')[-1]) }}";
+
+            img.onload = function () {
+                var maxWidth = 800;
+                var scaleFactor = Math.min(maxWidth / img.width, 1);
+                var newWidth = img.width * scaleFactor;
+                var newHeight = img.height * scaleFactor;
+
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+                ctx.drawImage(img, 0, 0, newWidth, newHeight);
+            };
+
+            img.onerror = function () {
+                console.error('Image failed to load');
+            };
+        }
+
+        function getPoint(event) {
+            var rect = canvas.getBoundingClientRect();
+            var x = (event.clientX - rect.left);
+            var y = (event.clientY - rect.top);
+            points.push([x, y]);
+
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            if (points.length < 4) {
+                ctx.fillStyle = "red";
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            if (points.length > 1) {
+                ctx.strokeStyle = "blue";
+                ctx.beginPath();
+                ctx.moveTo(points[0][0], points[0][1]);
+                for (var i = 1; i < points.length; i++) {
+                    ctx.lineTo(points[i][0], points[i][1]);
+                }
+                ctx.stroke();
+            }
+
+            if (points.length == 4) {
+                ctx.strokeStyle = "lightgreen";
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(points[0][0], points[0][1]);
+                for (var i = 1; i < points.length; i++) {
+                    ctx.lineTo(points[i][0], points[i][1]);
+                }
+                ctx.lineTo(points[0][0], points[0][1]);
+                ctx.stroke();
+
+                setTimeout(submitForm, 1000);
+            }
+        }
+
+        function submitForm() {
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/deskew';
+            form.innerHTML = `<input type="hidden" name="img_path" value="${img.src}">
+                              ${points.map(p => `<input type="hidden" name="points" value="${p[0]},${p[1]}">`).join('')}`;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="navbar">
+            <div class="left">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Company Logo">
+            </div>
+            <div class="right">
+                <div id="server_version">Version: {{ version | default('2024.06.08.001', true) }} </div>
+            </div>
+        </div>
+        <div class="hero-vertical">
+            <h2 class="subheading" id="select-points-heading">Click to Select 4 Points</h2>
+            <div class="page-div page-div-clear">
+                <canvas id="image-canvas" class="image-canvas" onclick="getPoint(event)"></canvas>
+            </div>
+
+            {% if deskewed_img_path %}
+            <h2 class="subheading">Compare the results</h2>
+            <div class="before-after-container">
+                <div class="beforeAfter">
+                    <img src="{{ url_for('uploaded_file', filename=img_path.split('/')[-1]) }}" alt="Before Image" />
+                    <img src="{{ url_for('output_file', filename=deskewed_img_path.split('/')[-1]) }}" alt="After Image" />
+                </div>
+            </div>
+            <script>
+                $(document).ready(function () {
+                    $('.beforeAfter').beforeAfter(
+                        {
+                            alwaysShow: true,
+                            position: 50,
+                            separatorColor: '#fb6505',
+                            bulletColor: '#fdaa48',
+                            arrowColor: '#fb6505',
+                        }
+                    );
+                    $('#select-points-heading').hide();
+                    $('#image-canvas').hide();
+                });
+            </script>
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="{{ url_for('index') }}" class="button">Upload another image</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+
+</html>
